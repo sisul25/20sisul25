@@ -414,6 +414,14 @@
             color: #666;
             font-size: 1.2em;
         }
+
+        .admin-section-header {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -618,22 +626,23 @@
 
             <!-- 관리자 입장 -->
             <div id="admin" class="section">
-                <h2>평가 현황 모니터링</h2>
-                
-                <div class="alert alert-info">
-                    <strong>현재 평가 현황:</strong> 실시간으로 각 부서별 평가 완료 상태를 확인할 수 있습니다.
+                <h2>관리자 모니터링</h2>
+
+                <!-- 섹션 1: 우수과제 평가 관리 -->
+                <div class="admin-section-header">
+                    <h3>1. 하반기 우수과제 평가 관리</h3>
                 </div>
                 
                 <div class="form-group">
                     <button class="btn btn-primary" onclick="refreshStatus()">상태 새로고침</button>
-                    <button class="btn btn-success" onclick="exportResults()">결과 내보내기</button>
-                    <button class="btn btn-danger" onclick="showDeleteEvaluator()">데이터 삭제</button>
-                    <button class="btn btn-danger" onclick="resetAllData()">전체 초기화</button>
+                    <button class="btn btn-success" onclick="exportEvaluationResults()">결과 내보내기</button>
+                    <button class="btn btn-danger" onclick="showDeleteEvaluationData()">데이터 삭제</button>
+                    <button class="btn btn-danger" onclick="resetEvaluationData()">전체 초기화</button>
                 </div>
                 
-                <!-- 개별 삭제 영역 -->
-                <div id="deleteSection" class="hidden" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                    <h4 style="margin-bottom: 15px;">개별 평가자 삭제</h4>
+                <!-- 개별 평가 삭제 영역 -->
+                <div id="deleteEvaluationSection" class="hidden" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px;">개별 평가 데이터 삭제</h4>
                     <div class="form-group">
                         <label for="deleteEvaluatorSelect">삭제할 평가자 선택</label>
                         <select id="deleteEvaluatorSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
@@ -641,34 +650,58 @@
                         </select>
                     </div>
                     <div style="text-align: center; margin-top: 15px;">
-                        <button class="btn btn-primary" onclick="hideDeleteEvaluator()">취소</button>
-                        <button class="btn btn-danger" onclick="deleteSelectedEvaluator()">삭제</button>
+                        <button class="btn btn-primary" onclick="hideDeleteEvaluationData()">취소</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedEvaluationData()">삭제</button>
                     </div>
                 </div>
                 
-                <h3>임원 평가 현황</h3>
+                <h4>임원 평가 현황</h4>
                 <div id="executiveStatus" class="status-grid"></div>
                 
-                <h3>직원 평가 현황</h3>
+                <h4 style="margin-top: 20px;">직원 평가 현황</h4>
                 <div id="employeeStatus" class="status-grid"></div>
 
-                <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
-                    <h3>🏆 최종 투표 현황</h3>
-                    <div id="finalVoteStatus" style="margin-top: 20px;">
-                        <div class="alert alert-success">
-                            <h4 style="margin-bottom: 10px;">실시간 투표 집계</h4>
-                            <div style="display: flex; justify-content: space-around; font-size: 1.2em;">
-                                <span>총 투표수: <strong id="totalFinalVotes">0</strong>명</span>
-                                <span>상반기: <strong id="firstHalfVotes">0</strong>표</span>
-                                <span>하반기: <strong id="secondHalfVotes">0</strong>표</span>
-                            </div>
-                        </div>
-                        <h4>투표 참여자 명단</h4>
-                        <div id="finalVoterList" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                            <!-- 참여자 명단이 여기에 표시됩니다 -->
-                        </div>
+                <!-- 섹션 2: 최종 투표 관리 -->
+                <div class="admin-section-header" style="margin-top: 50px;">
+                    <h3>2. 최종 대상 투표 관리</h3>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="refreshStatus()">상태 새로고침</button>
+                    <button class="btn btn-success" onclick="exportFinalVoteResults()">결과 내보내기</button>
+                    <button class="btn btn-danger" onclick="showDeleteFinalVoteData()">데이터 삭제</button>
+                    <button class="btn btn-danger" onclick="resetFinalVoteData()">전체 초기화</button>
+                </div>
+
+                <!-- 개별 투표 삭제 영역 -->
+                <div id="deleteFinalVoteSection" class="hidden" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px;">개별 최종 투표 데이터 삭제</h4>
+                    <div class="form-group">
+                        <label for="deleteFinalVoterSelect">삭제할 투표자 선택</label>
+                        <select id="deleteFinalVoterSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                            <option value="">선택하세요</option>
+                        </select>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="hideDeleteFinalVoteData()">취소</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedFinalVoteData()">삭제</button>
                     </div>
                 </div>
+
+                <div class="alert alert-success" style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px;">실시간 투표 집계</h4>
+                    <div style="display: flex; justify-content: space-around; font-size: 1.2em;">
+                        <span>총 투표수: <strong id="totalFinalVotes">0</strong>명</span>
+                        <span>상반기: <strong id="firstHalfVotes">0</strong>표</span>
+                        <span>하반기: <strong id="secondHalfVotes">0</strong>표</span>
+                    </div>
+                </div>
+
+                <h4>임원 투표 현황</h4>
+                <div id="finalVoteExecutiveStatus" class="status-grid"></div>
+                
+                <h4 style="margin-top: 20px;">직원 투표 현황</h4>
+                <div id="finalVoteEmployeeStatus" class="status-grid"></div>
             </div>
             
             <!-- 결과 확인 -->
@@ -722,14 +755,14 @@
     <script>
        // Firebase 설정 및 초기화
         const firebaseConfig = {
-  apiKey: "AIzaSyBeQ55bQ3yaNiWI3A6uxRIk3-Yw5Z6QJRw",
-  authDomain: "sisul25-57a54.firebaseapp.com",
-  databaseURL: "https://sisul25-57a54-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sisul25-57a54",
-  storageBucket: "sisul25-57a54.firebasestorage.app",
-  messagingSenderId: "897255832668",
-  appId: "1:897255832668:web:e3ffd943e2f6dfcfef7a99"
-};
+            apiKey: "AIzaSyDdMIoq-H7UTLYRLvL1alv4sB7q6IyfdbE",
+            authDomain: "sisul25.firebaseapp.com",
+            databaseURL: "https://sisul25-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "sisul25",
+            storageBucket: "sisul25.appstore.com",
+            messagingSenderId: "1053271765928",
+            appId: "1:1053271765928:web:6fa1d25796f2b503b9e39d"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -757,7 +790,7 @@
             if (data) {
                 finalVotes = data;
                 if (isAdminMode) {
-                    updateFinalVoteStatus();
+                    refreshStatus(); // 통합 새로고침 호출
                 }
             } else {
                 finalVotes = [];
@@ -1048,7 +1081,6 @@
             
             if (sectionName === 'admin') {
                 refreshStatus();
-                updateFinalVoteStatus();
             }
         }
         
@@ -1151,22 +1183,6 @@
 
             // 로그인 성공 시 평가 화면으로 이동
             const evaluatorKey = type === 'executive' ? dept : `${name}_${dept}`;
-            
-            // 만약 최종 투표 탭에서 로그인을 눌렀다면 다시 최종 투표로
-            // 하지만 기본적으로는 평가 화면으로 이동
-            
-            // 중복 평가 체크는 'startEvaluation' 버튼을 누를 때마다 체크하되,
-            // 이미 완료했더라도 '로그인' 상태는 유지시켜줘야 함 (최종 투표를 위해)
-            
-            if (completedEvaluators.includes(evaluatorKey)) {
-                // 이미 평가를 완료했으면 최종 투표 탭으로 이동할지 물어보거나 안내
-                // 일단 로그인은 유지
-                // showAlert('이미 하반기 평가는 완료하셨습니다. 최종 투표 탭으로 이동합니다.');
-                // showSection('finalVote');
-                // return;
-                // 사용자 경험상 바로 투표화면 보여주는게 나을 수 있음, 
-                // 하지만 일단 기존 로직 유지하고 투표 탭 클릭 시 확인
-            }
             
             let targetDepartments = [...departments];
             
@@ -1424,9 +1440,6 @@
             // currentEvaluator = null; // 로그인은 유지 (최종 투표 위해)
             currentPage = 0;
             evaluations = [];
-            
-            // 평가자 입력 폼도 초기화 (화면상)
-            // resetEvaluatorForm(); // 여기를 주석처리하고 완료 메시지 후 탭 이동 유도
         }
         
         function resetEvaluatorForm() {
@@ -1446,11 +1459,16 @@
             document.getElementById('evaluatorLogin').classList.remove('hidden');
         }
         
+        // --- 관리자 기능 통합 ---
         function refreshStatus() {
             updateExecutiveStatus();
             updateEmployeeStatus();
-            updateFinalVoteStatus();
+            updateFinalVoteExecutiveStatus();
+            updateFinalVoteEmployeeStatus();
+            updateFinalVoteStats();
         }
+
+        // --- 섹션 1: 하반기 우수과제 평가 관리 ---
         
         function updateExecutiveStatus() {
             const container = document.getElementById('executiveStatus');
@@ -1482,6 +1500,231 @@
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function exportEvaluationResults() {
+            if (allEvaluations.length === 0) {
+                showAlert('내보낼 평가 데이터가 없습니다.');
+                return;
+            }
+            
+            let csvContent = "평가자구분,평가자명,평가자소속,평가부서,창의성,난이도,효과성,전파성,기여도,총점\n";
+            
+            allEvaluations.forEach(evalData => {
+                evalData.evaluations.forEach(evaluation => {
+                    csvContent += `${evalData.evaluator.type === 'executive' ? '임원' : '직원'},${evalData.evaluator.name},${evalData.evaluator.dept},${evaluation.department},${evaluation.creativity},${evaluation.difficulty},${evaluation.effectiveness},${evaluation.spreadability},${evaluation.contribution},${evaluation.total}\n`;
+                });
+            });
+            
+            downloadCSV(csvContent, '우수과제평가_결과.csv');
+        }
+
+        async function resetEvaluationData() {
+            const result = await showConfirm('하반기 우수과제 평가 데이터를 모두 삭제하시겠습니까? (최종 투표 데이터는 유지됩니다)');
+            if (result) {
+                allEvaluations = [];
+                completedEvaluators = [];
+                
+                database.ref('allEvaluations').remove();
+                database.ref('completedEvaluators').remove();
+                
+                showAlert('평가 데이터가 초기화되었습니다.');
+                refreshStatus();
+            }
+        }
+
+        function showDeleteEvaluationData() {
+            const deleteSection = document.getElementById('deleteEvaluationSection');
+            if (!deleteSection.classList.contains('hidden')) {
+                hideDeleteEvaluationData();
+                return;
+            }
+            const select = document.getElementById('deleteEvaluatorSelect');
+            select.innerHTML = '<option value="">선택하세요</option>';
+            if (allEvaluations && allEvaluations.length > 0) {
+                allEvaluations.forEach((evalData, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const evaluatorType = evalData.evaluator.type === 'executive' ? '임원' : '직원';
+                    const evaluatorInfo = evalData.evaluator.type === 'executive' ? 
+                        evalData.evaluator.name : 
+                        `${evalData.evaluator.name} (${evalData.evaluator.dept})`;
+                    option.textContent = `${evaluatorType} - ${evaluatorInfo}`;
+                    select.appendChild(option);
+                });
+            }
+            deleteSection.classList.remove('hidden');
+        }
+
+        function hideDeleteEvaluationData() {
+            document.getElementById('deleteEvaluationSection').classList.add('hidden');
+        }
+
+        async function deleteSelectedEvaluationData() {
+            const selectedIndex = document.getElementById('deleteEvaluatorSelect').value;
+            if (selectedIndex === '') {
+                showAlert('삭제할 평가자를 선택해주세요.');
+                return;
+            }
+            const evalData = allEvaluations[selectedIndex];
+            const result = await showConfirm(`선택한 평가자의 데이터를 삭제하시겠습니까?`);
+            if (result) {
+                allEvaluations.splice(selectedIndex, 1);
+                const evaluatorKey = evalData.evaluator.type === 'executive' ? 
+                    evalData.evaluator.dept : 
+                    `${evalData.evaluator.name}_${evalData.evaluator.dept}`;
+                const keyIndex = completedEvaluators.indexOf(evaluatorKey);
+                if (keyIndex > -1) completedEvaluators.splice(keyIndex, 1);
+                
+                database.ref('allEvaluations').set(allEvaluations);
+                database.ref('completedEvaluators').set(completedEvaluators);
+                showAlert('데이터가 삭제되었습니다.');
+                hideDeleteEvaluationData();
+                refreshStatus();
+            }
+        }
+
+        // --- 섹션 2: 최종 대상 투표 관리 ---
+
+        function updateFinalVoteExecutiveStatus() {
+            const container = document.getElementById('finalVoteExecutiveStatus');
+            container.innerHTML = '';
+            
+            executives.forEach(exec => {
+                const voted = finalVotes && finalVotes.some(v => v.voter.type === 'executive' && v.voter.dept === exec.name);
+                const card = document.createElement('div');
+                card.className = `status-card ${voted ? 'status-complete' : 'status-incomplete'}`;
+                card.innerHTML = `
+                    <div>${exec.name}</div>
+                    <div>${voted ? '투표완료' : '미투표'}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateFinalVoteEmployeeStatus() {
+            const container = document.getElementById('finalVoteEmployeeStatus');
+            container.innerHTML = '';
+            
+            allDepartments.forEach(dept => {
+                // 부서별 투표자 수 카운트
+                const voteCount = finalVotes ? finalVotes.filter(v => v.voter.type === 'employee' && v.voter.dept === dept).length : 0;
+                // 직원은 2명 제한 없이 현장 전원 투표이므로 단순히 참여 인원수만 표시
+                const card = document.createElement('div');
+                card.className = `status-card ${voteCount > 0 ? 'status-complete' : 'status-incomplete'}`;
+                // 완료 조건은 1명 이상이면 초록색으로 표시하여 참여 여부 확인
+                card.innerHTML = `
+                    <div>${dept}</div>
+                    <div>${voteCount}명 투표</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateFinalVoteStats() {
+             const total = finalVotes ? finalVotes.length : 0;
+            const firstHalf = finalVotes ? finalVotes.filter(v => v.choice === 'firstHalf').length : 0;
+            const secondHalf = finalVotes ? finalVotes.filter(v => v.choice === 'secondHalf').length : 0;
+
+            document.getElementById('totalFinalVotes').textContent = total;
+            document.getElementById('firstHalfVotes').textContent = firstHalf;
+            document.getElementById('secondHalfVotes').textContent = secondHalf;
+        }
+
+        function exportFinalVoteResults() {
+             if (!finalVotes || finalVotes.length === 0) {
+                showAlert('내보낼 투표 데이터가 없습니다.');
+                return;
+            }
+            
+            let csvContent = "투표자구분,투표자명,투표자소속,선택\n";
+            
+            finalVotes.forEach(vote => {
+                 const type = vote.voter.type === 'executive' ? '임원' : '직원';
+                 const choice = vote.choice === 'firstHalf' ? '상반기' : '하반기';
+                 csvContent += `${type},${vote.voter.name},${vote.voter.dept},${choice}\n`;
+            });
+            
+            downloadCSV(csvContent, '최종투표_결과.csv');
+        }
+
+        async function resetFinalVoteData() {
+            const result = await showConfirm('최종 대상 투표 데이터를 모두 삭제하시겠습니까? (우수과제 평가 데이터는 유지됩니다)');
+            if (result) {
+                finalVotes = [];
+                finalVoters = [];
+                
+                database.ref('finalVotes').remove();
+                database.ref('finalVoters').remove();
+                
+                showAlert('투표 데이터가 초기화되었습니다.');
+                refreshStatus();
+            }
+        }
+
+        function showDeleteFinalVoteData() {
+             const deleteSection = document.getElementById('deleteFinalVoteSection');
+            if (!deleteSection.classList.contains('hidden')) {
+                hideDeleteFinalVoteData();
+                return;
+            }
+            const select = document.getElementById('deleteFinalVoterSelect');
+            select.innerHTML = '<option value="">선택하세요</option>';
+            if (finalVotes && finalVotes.length > 0) {
+                finalVotes.forEach((vote, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const type = vote.voter.type === 'executive' ? '임원' : '직원';
+                    const info = vote.voter.type === 'executive' ? vote.voter.name : `${vote.voter.name} (${vote.voter.dept})`;
+                    option.textContent = `${type} - ${info}`;
+                    select.appendChild(option);
+                });
+            }
+            deleteSection.classList.remove('hidden');
+        }
+
+        function hideDeleteFinalVoteData() {
+            document.getElementById('deleteFinalVoteSection').classList.add('hidden');
+        }
+
+        async function deleteSelectedFinalVoteData() {
+            const selectedIndex = document.getElementById('deleteFinalVoterSelect').value;
+            if (selectedIndex === '') {
+                showAlert('삭제할 투표자를 선택해주세요.');
+                return;
+            }
+            const vote = finalVotes[selectedIndex];
+            const result = await showConfirm(`선택한 투표자의 데이터를 삭제하시겠습니까?`);
+            if (result) {
+                finalVotes.splice(selectedIndex, 1);
+                
+                // finalVoters 배열에서도 제거
+                const voterKey = vote.voter.type === 'executive' ? 
+                    vote.voter.dept : 
+                    `${vote.voter.name}_${vote.voter.dept}`;
+                const keyIndex = finalVoters.indexOf(voterKey);
+                if (keyIndex > -1) finalVoters.splice(keyIndex, 1);
+                
+                database.ref('finalVotes').set(finalVotes);
+                database.ref('finalVoters').set(finalVoters);
+                
+                showAlert('데이터가 삭제되었습니다.');
+                hideDeleteFinalVoteData();
+                refreshStatus();
+            }
+        }
+
+        // 공통 다운로드 함수
+        function downloadCSV(csvContent, fileName) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // --- 최종 투표 로직 ---
@@ -1524,28 +1767,6 @@
                     document.getElementById('finalVoteThankYou').classList.remove('hidden');
                 }
             });
-        }
-
-        function updateFinalVoteStatus() {
-            const total = finalVotes ? finalVotes.length : 0;
-            const firstHalf = finalVotes ? finalVotes.filter(v => v.choice === 'firstHalf').length : 0;
-            const secondHalf = finalVotes ? finalVotes.filter(v => v.choice === 'secondHalf').length : 0;
-
-            document.getElementById('totalFinalVotes').textContent = total;
-            document.getElementById('firstHalfVotes').textContent = firstHalf;
-            document.getElementById('secondHalfVotes').textContent = secondHalf;
-
-            const listContainer = document.getElementById('finalVoterList');
-            listContainer.innerHTML = '';
-            if (finalVotes) {
-                finalVotes.forEach(vote => {
-                    const div = document.createElement('div');
-                    div.style.padding = '5px';
-                    div.style.borderBottom = '1px solid #eee';
-                    div.textContent = `${vote.voter.type === 'executive' ? '[임원]' : '[직원]'} ${vote.voter.name} (${vote.voter.dept}) - ${vote.choice === 'firstHalf' ? '상반기' : '하반기'} 투표`;
-                    listContainer.appendChild(div);
-                });
-            }
         }
         
         function revealGrandPrize() {
@@ -1871,107 +2092,6 @@
             };
             
             showStep();
-        }
-        
-        function exportResults() {
-            if (allEvaluations.length === 0) {
-                showAlert('내보낼 데이터가 없습니다.');
-                return;
-            }
-            
-            let csvContent = "평가자구분,평가자명,평가자소속,평가부서,창의성,난이도,효과성,전파성,기여도,총점\n";
-            
-            allEvaluations.forEach(evalData => {
-                evalData.evaluations.forEach(evaluation => {
-                    csvContent += `${evalData.evaluator.type === 'executive' ? '임원' : '직원'},${evalData.evaluator.name},${evalData.evaluator.dept},${evaluation.department},${evaluation.creativity},${evaluation.difficulty},${evaluation.effectiveness},${evaluation.spreadability},${evaluation.contribution},${evaluation.total}\n`;
-                });
-            });
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', '평가결과.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        async function resetAllData() {
-            const result = await showConfirm('모든 평가 데이터와 투표 기록을 삭제하시겠습니까?');
-            if (result) {
-                allEvaluations = [];
-                completedEvaluators = [];
-                finalVotes = [];
-                finalVoters = [];
-                
-                database.ref('allEvaluations').remove();
-                database.ref('completedEvaluators').remove();
-                database.ref('finalVotes').remove();
-                database.ref('finalVoters').remove();
-                
-                showAlert('모든 데이터가 초기화되었습니다.');
-                refreshStatus();
-            }
-        }
-        
-        function showDeleteEvaluator() {
-            const deleteSection = document.getElementById('deleteSection');
-            if (!deleteSection.classList.contains('hidden')) {
-                hideDeleteEvaluator();
-                return;
-            }
-            const select = document.getElementById('deleteEvaluatorSelect');
-            select.innerHTML = '<option value="">선택하세요</option>';
-            if (allEvaluations && allEvaluations.length > 0) {
-                allEvaluations.forEach((evalData, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    const evaluatorType = evalData.evaluator.type === 'executive' ? '임원' : '직원';
-                    const evaluatorInfo = evalData.evaluator.type === 'executive' ? 
-                        evalData.evaluator.name : 
-                        `${evalData.evaluator.name} (${evalData.evaluator.dept})`;
-                    option.textContent = `${evaluatorType} - ${evaluatorInfo}`;
-                    select.appendChild(option);
-                });
-            }
-            deleteSection.classList.remove('hidden');
-        }
-        
-        function hideDeleteEvaluator() {
-            document.getElementById('deleteSection').classList.add('hidden');
-        }
-        
-        async function deleteSelectedEvaluator() {
-            const selectedIndex = document.getElementById('deleteEvaluatorSelect').value;
-            if (selectedIndex === '') {
-                showAlert('삭제할 평가자를 선택해주세요.');
-                return;
-            }
-            const evalData = allEvaluations[selectedIndex];
-            const evaluatorType = evalData.evaluator.type === 'executive' ? '임원' : '직원';
-            const evaluatorInfo = evalData.evaluator.type === 'executive' ? 
-                evalData.evaluator.name : 
-                `${evalData.evaluator.name} (${evalData.evaluator.dept})`;
-            
-            const result = await showConfirm(`${evaluatorType} - ${evaluatorInfo}의 평가 데이터를 삭제하시겠습니까?`);
-            if (result) {
-                allEvaluations.splice(selectedIndex, 1);
-                const evaluatorKey = evalData.evaluator.type === 'executive' ? 
-                    evalData.evaluator.dept : 
-                    `${evalData.evaluator.name}_${evalData.evaluator.dept}`;
-                const keyIndex = completedEvaluators.indexOf(evaluatorKey);
-                if (keyIndex > -1) {
-                    completedEvaluators.splice(keyIndex, 1);
-                }
-                database.ref('allEvaluations').set(allEvaluations);
-                database.ref('completedEvaluators').set(completedEvaluators);
-
-                showAlert('선택한 평가자의 데이터가 삭제되었습니다.');
-                hideDeleteEvaluator();
-                refreshStatus();
-            }
         }
     </script>
 </body>
