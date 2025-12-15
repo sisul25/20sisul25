@@ -161,6 +161,16 @@
             transform: translateY(-2px);
         }
         
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
         .evaluation-form {
             background: #f8f9fa;
             padding: 25px;
@@ -599,18 +609,19 @@
                 <div id="finalVoteArea" class="hidden">
                     <div class="alert alert-info" style="text-align: center;">
                         가장 우수하다고 생각하는 <strong>하나의 과제</strong>를 선택해주세요.<br>
-                        임원 및 직원 모두 <strong>1인 1표</strong>로 동일하게 집계됩니다.
+                        임원 및 직원 모두 <strong>1인 1표</strong>로 동일하게 집계됩니다.<br>
+                        <span style="color: #dc3545; font-size: 0.9em;">* 후보 과제 관련 부서 및 담당 임원은 투표가 제한됩니다.</span>
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
                         <div class="vote-card" onclick="submitFinalVote('firstHalf')">
                             <h3>상반기 1위</h3>
-                            <p>상반기 최우수 선정 과제</p>
+                            <p id="firstHalfCandidateName">서울어린이대공원</p>
                             <div style="margin-top: 20px; font-size: 4em;">🥇</div>
                         </div>
                         <div class="vote-card" onclick="submitFinalVote('secondHalf')">
                             <h3>하반기 1위</h3>
-                            <p>하반기 최우수 선정 과제</p>
+                            <p id="secondHalfCandidateName">미정</p>
                             <div style="margin-top: 20px; font-size: 4em;">🥇</div>
                         </div>
                     </div>
@@ -661,9 +672,28 @@
                 <h4 style="margin-top: 20px;">직원 평가 현황</h4>
                 <div id="employeeStatus" class="status-grid"></div>
 
-                <!-- 섹션 2: 최종 투표 관리 -->
+                <!-- [UPDATED] 섹션 2: 최종 대상 후보 설정 (UI 추가) -->
                 <div class="admin-section-header" style="margin-top: 50px;">
-                    <h3>2. 최종 대상 투표 관리</h3>
+                    <h3>2. 최종 대상 후보 설정</h3>
+                </div>
+                <div class="evaluation-form" style="background: #fff3cd;">
+                    <div class="form-group">
+                        <label>상반기 1위 (고정)</label>
+                        <input type="text" value="서울어린이대공원" readonly disabled style="background: #e9ecef; font-weight: bold; color: #555;">
+                    </div>
+                    <div class="form-group">
+                        <label for="adminCandidate2Select">하반기 1위 선택 (현장 결정)</label>
+                        <select id="adminCandidate2Select">
+                            <option value="">선택하세요</option>
+                            <!-- 부서 목록이 JS로 로드됨 -->
+                        </select>
+                    </div>
+                    <button class="btn btn-warning" onclick="saveFinalVoteConfig()">후보 확정 및 투표 시작</button>
+                </div>
+
+                <!-- 섹션 3: 최종 투표 관리 -->
+                <div class="admin-section-header" style="margin-top: 50px;">
+                    <h3>3. 최종 대상 투표 관리</h3>
                 </div>
 
                 <div class="form-group">
@@ -806,6 +836,19 @@
             }
         });
 
+        // [UPDATED] 최종 후보 설정 데이터 리스너
+        database.ref('finalVoteConfig').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                finalVoteConfig = data;
+                // 투표 화면 UI 업데이트 (부서명 표시)
+                const c1Name = document.getElementById('firstHalfCandidateName');
+                const c2Name = document.getElementById('secondHalfCandidateName');
+                if(c1Name) c1Name.textContent = finalVoteConfig.candidate1 || '서울어린이대공원';
+                if(c2Name) c2Name.textContent = finalVoteConfig.candidate2 || '미정';
+            }
+        });
+
         // 기본 데이터 설정
         // [추가] 1단계: 사전 집계된 시민 투표 점수 (100점 만점 환산 기준)
          const citizenScores = {
@@ -849,6 +892,8 @@
         let completedEvaluators = []; // 평가 완료한 평가자 목록
         let finalVotes = []; // 최종 투표 결과
         let finalVoters = []; // 최종 투표 참여자 목록
+        // [UPDATED] 최종 후보 설정 변수 (기본값 설정)
+        let finalVoteConfig = { candidate1: '서울어린이대공원', candidate2: '' };
         let isAdminMode = false; // 관리자 모드 여부
         let isAdminAuthenticated = false; // 관리자 인증 상태
         const ADMIN_PASSWORD = 'sisul2025'; // 관리자 비밀번호
@@ -857,7 +902,7 @@
         function showAlert(message) {
             return new Promise((resolve) => {
                 document.getElementById('modalTitle').textContent = '알림';
-                document.getElementById('modalMessage').textContent = message;
+                document.getElementById('modalMessage').innerHTML = message; // HTML 지원하도록 변경
                 document.getElementById('modalConfirm').textContent = '확인';
                 document.getElementById('modalCancel').style.display = 'none';
                 document.getElementById('customModal').style.display = 'block';
@@ -987,6 +1032,17 @@
             // 관리자 모드일 때만 상태 새로고침
             if (isAdminMode) {
                 refreshStatus();
+            }
+
+            // [UPDATED] 관리자용 부서 목록 채우기 (하반기 1위 선택용)
+            const adminSelect = document.getElementById('adminCandidate2Select');
+            if (adminSelect) {
+                allDepartments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    adminSelect.appendChild(option);
+                });
             }
         });
         
@@ -1586,6 +1642,31 @@
 
         // --- 섹션 2: 최종 대상 투표 관리 ---
 
+        // [UPDATED] 관리자용: 최종 투표 설정 저장 함수
+        function saveFinalVoteConfig() {
+            const candidate1 = '서울어린이대공원'; // 고정값
+            const select = document.getElementById('adminCandidate2Select');
+            const candidate2 = select.value;
+
+            if (!candidate2) {
+                showAlert('하반기 1위 부서를 선택해주세요.');
+                return;
+            }
+
+            if (candidate1 === candidate2) {
+                showAlert('상반기와 하반기 1위가 동일할 수 없습니다. 다시 확인해주세요.');
+                return;
+            }
+
+            showConfirm(`하반기 1위 후보를 '${candidate2}'로 확정하고 투표를 시작하시겠습니까?`).then(result => {
+                if (result) {
+                    finalVoteConfig = { candidate1, candidate2 };
+                    database.ref('finalVoteConfig').set(finalVoteConfig);
+                    showAlert('후보가 확정되었습니다. 이제 직원들이 투표할 수 있습니다.');
+                }
+            });
+        }
+
         function updateFinalVoteExecutiveStatus() {
             const container = document.getElementById('finalVoteExecutiveStatus');
             container.innerHTML = '';
@@ -1735,6 +1816,35 @@
                 return;
             }
 
+            // [UPDATED] 후보 부서 확인 (관리자가 설정하지 않았으면 투표 불가)
+            if (!finalVoteConfig.candidate2) {
+                showAlert('아직 하반기 후보가 확정되지 않아 투표를 시작할 수 없습니다.<br>잠시만 기다려주세요.');
+                return;
+            }
+
+            const candidate1 = finalVoteConfig.candidate1; // 서울어린이대공원
+            const candidate2 = finalVoteConfig.candidate2;
+
+            // [UPDATED] 투표 제한 로직 적용
+            // 1. 임원 제한: 담당 부서에 후보가 포함된 경우
+            if (currentEvaluator.type === 'executive') {
+                // 임원 정보 찾기
+                const execInfo = executives.find(e => e.name === currentEvaluator.name);
+                if (execInfo) {
+                    if (execInfo.cannotEvaluate.includes(candidate1) || execInfo.cannotEvaluate.includes(candidate2)) {
+                        showAlert(`귀하는 후보 부서(${execInfo.cannotEvaluate.includes(candidate1) ? candidate1 : candidate2})의 담당 임원이므로<br>공정한 심사를 위해 투표에 참여하실 수 없습니다.`);
+                        return;
+                    }
+                }
+            } 
+            // 2. 직원 제한: 소속 부서가 후보인 경우
+            else if (currentEvaluator.type === 'employee') {
+                if (currentEvaluator.dept === candidate1 || currentEvaluator.dept === candidate2) {
+                    showAlert(`귀하의 소속 부서(${currentEvaluator.dept})가 최종 후보에 올랐으므로<br>공정한 심사를 위해 투표에 참여하실 수 없습니다.`);
+                    return;
+                }
+            }
+
             const evaluatorKey = currentEvaluator.type === 'executive' ? 
                 currentEvaluator.dept : 
                 `${currentEvaluator.name}_${currentEvaluator.dept}`;
@@ -1745,7 +1855,9 @@
                 return;
             }
 
-            showConfirm(`'${choice === 'firstHalf' ? '상반기 1위' : '하반기 1위'}' 과제에 투표하시겠습니까?`).then(result => {
+            const candidateName = choice === 'firstHalf' ? candidate1 : candidate2;
+
+            showConfirm(`'${choice === 'firstHalf' ? '상반기 1위' : '하반기 1위'}' (${candidateName})에 투표하시겠습니까?`).then(result => {
                 if (result) {
                     const voteData = {
                         choice: choice,
@@ -1792,7 +1904,7 @@
                 <div style="background: ${winnerColor}; color: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
                     <h1 style="font-size: 3em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">${winnerText}</h1>
                     <div style="font-size: 1.5em;">
-                        상반기: ${firstHalf}표 vs 하반기: ${secondHalf}표
+                        상반기(${finalVoteConfig.candidate1}): ${firstHalf}표 vs 하반기(${finalVoteConfig.candidate2}): ${secondHalf}표
                     </div>
                 </div>
                 <style>
