@@ -492,6 +492,7 @@
                         <select id="evaluatorPosition">
                             <option value="">선택하세요</option>
                             <option value="이사장">이사장</option>
+                            <option value="상임감사">상임감사</option>
                             <option value="경영전략본부장">경영전략본부장</option>
                             <option value="복지경제본부장">복지경제본부장</option>
                             <option value="문화체육본부장">문화체육본부장</option>
@@ -876,6 +877,7 @@
         
         const executives = [
             { name: '이사장', dept: '이사장', cannotEvaluate: [] },
+            { name: '상임감사', dept: '감사실', cannotEvaluate: ['감사실'] },
             { name: '경영전략본부장', dept: '경영전략본부', cannotEvaluate: ['기획조정실', '인사노무처', '총무처', '홍보실', '인재문화원', 'IT전략실'] },
             { name: '복지경제본부장', dept: '복지경제본부', cannotEvaluate: ['상가운영처', '추모시설운영처', '장애인콜택시운영처'] },
             { name: '문화체육본부장', dept: '문화체육본부', cannotEvaluate: ['서울월드컵경기장운영처', '돔경기장운영처', '서울어린이대공원', '청계천관리처', '남산곤돌라인수단TF'] },
@@ -1223,6 +1225,11 @@
                 }
                 name = position;
                 dept = position;
+                
+                // 상임감사의 경우 소속을 '감사실'로 매핑 (필요시)
+                if (position === '상임감사') {
+                    dept = '감사실';
+                }
             } else if (type === 'employee') {
                 name = document.getElementById('evaluatorName').value;
                 dept = document.getElementById('evaluatorDept').value;
@@ -1243,7 +1250,7 @@
             let targetDepartments = [...departments];
             
             if (type === 'executive') {
-                const executive = executives.find(e => e.name === dept);
+                const executive = executives.find(e => e.name === currentEvaluator.name);
                 if (executive) {
                     targetDepartments = targetDepartments.filter(d => !executive.cannotEvaluate.includes(d));
                 }
@@ -1882,38 +1889,87 @@
         }
         
         function revealGrandPrize() {
-            const firstHalf = finalVotes ? finalVotes.filter(v => v.choice === 'firstHalf').length : 0;
-            const secondHalf = finalVotes ? finalVotes.filter(v => v.choice === 'secondHalf').length : 0;
-            
-            let winnerText = "";
-            let winnerColor = "";
-            
-            if (firstHalf > secondHalf) {
-                winnerText = "🥇 상반기 최우수작 🥇";
-                winnerColor = "linear-gradient(135deg, #FFD700, #FFA500)";
-            } else if (secondHalf > firstHalf) {
-                winnerText = "🥇 하반기 최우수작 🥇";
-                winnerColor = "linear-gradient(135deg, #FFD700, #FFA500)";
-            } else {
-                winnerText = "🤝 무승부 (공동 수상) 🤝";
-                winnerColor = "#aaa";
-            }
-
             const container = document.getElementById('finalGrandPrizeArea');
+            
+            // 1단계: 티저 화면
             container.innerHTML = `
-                <div style="background: ${winnerColor}; color: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                    <h1 style="font-size: 3em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">${winnerText}</h1>
-                    <div style="font-size: 1.5em;">
-                        상반기(${finalVoteConfig.candidate1}): ${firstHalf}표 vs 하반기(${finalVoteConfig.candidate2}): ${secondHalf}표
+                <div style="cursor: pointer; padding: 50px 20px; animation: pulse 2s infinite;" onclick="showGrandPrizeWinner()">
+                    <h2 style="font-size: 2.8em; color: #d4af37; margin-bottom: 30px; line-height: 1.5; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
+                        과연 2025년도 서시공 대상을<br>차지할 영광의 주인공은<br>어떤 부서일까요?
+                    </h2>
+                    <div style="margin-top: 50px;">
+                        <div style="display: inline-block; width: 80px; height: 80px; border: 5px solid #d4af37; border-top: 5px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     </div>
+                    <p style="margin-top: 40px; font-size: 1.3em; color: #888;">화면을 클릭하여 대상을 공개하세요!</p>
                 </div>
                 <style>
-                    @keyframes popIn {
-                        from { transform: scale(0.5); opacity: 0; }
-                        to { transform: scale(1); opacity: 1; }
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.02); }
+                        100% { transform: scale(1); }
+                    }
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
                     }
                 </style>
             `;
+            
+            // 2단계: 결과 공개 함수 (전역 접근 가능하도록 설정)
+            window.showGrandPrizeWinner = function() {
+                const firstHalf = finalVotes ? finalVotes.filter(v => v.choice === 'firstHalf').length : 0;
+                const secondHalf = finalVotes ? finalVotes.filter(v => v.choice === 'secondHalf').length : 0;
+                
+                let winnerTitle = "";
+                let winnerName = "";
+                let winnerColor = "";
+                
+                if (firstHalf > secondHalf) {
+                    winnerTitle = "🏆 2025 서시공 어워드 대상 🏆";
+                    winnerName = finalVoteConfig.candidate1 || "서울어린이대공원";
+                    winnerColor = "linear-gradient(135deg, #FFD700, #FDB931)";
+                } else if (secondHalf > firstHalf) {
+                    winnerTitle = "🏆 2025 서시공 어워드 대상 🏆";
+                    winnerName = finalVoteConfig.candidate2 || "미정";
+                    winnerColor = "linear-gradient(135deg, #FFD700, #FDB931)";
+                } else {
+                    winnerTitle = "🤝 공동 대상 🤝";
+                    winnerName = `${finalVoteConfig.candidate1} & ${finalVoteConfig.candidate2}`;
+                    winnerColor = "linear-gradient(135deg, #C0C0C0, #E8E8E8)";
+                }
+
+                container.innerHTML = `
+                    <div style="padding: 40px; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        <h1 style="font-size: 3.5em; color: #d4af37; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                            축하합니다!
+                        </h1>
+                        <div style="background: ${winnerColor}; color: #333; padding: 60px 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.4); transform: scale(1.05);">
+                            <h2 style="font-size: 2em; margin-bottom: 20px; opacity: 0.8;">${winnerTitle}</h2>
+                            <h1 style="font-size: 4em; margin-bottom: 30px; font-weight: 900; text-shadow: 2px 2px 4px rgba(255,255,255,0.5);">
+                                ${winnerName}
+                            </h1>
+                            <div style="font-size: 1.8em; background: rgba(255,255,255,0.4); display: inline-block; padding: 15px 40px; border-radius: 50px; font-weight: bold;">
+                                상반기: ${firstHalf}표 vs 하반기: ${secondHalf}표
+                            </div>
+                        </div>
+                        <div style="margin-top: 50px;">
+                            <button class="btn btn-primary" onclick="resetGrandPrizeView()" style="padding: 10px 20px; font-size: 1em; opacity: 0.7;">다시 보기</button>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes popIn {
+                            from { transform: scale(0.5); opacity: 0; }
+                            to { transform: scale(1); opacity: 1; }
+                        }
+                    </style>
+                `;
+            };
+
+            window.resetGrandPrizeView = function() {
+                 container.innerHTML = `
+                    <button class="btn btn-warning" style="background: #FFD700; color: #333; font-size: 1.2em; padding: 15px 40px;" onclick="revealGrandPrize()">최종 대상 발표</button>
+                `;
+            }
         }
 
         // 기존 계산 함수들 유지...
