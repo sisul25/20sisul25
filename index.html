@@ -690,6 +690,7 @@
                         </select>
                     </div>
                     <button class="btn btn-warning" onclick="saveFinalVoteConfig()">후보 확정 및 투표 시작</button>
+                    <button class="btn btn-danger" onclick="resetFinalVoteConfig()">후보 설정 초기화</button>
                 </div>
 
                 <!-- 섹션 3: 최종 투표 관리 -->
@@ -847,6 +848,13 @@
                 const c2Name = document.getElementById('secondHalfCandidateName');
                 if(c1Name) c1Name.textContent = finalVoteConfig.candidate1 || '서울어린이대공원';
                 if(c2Name) c2Name.textContent = finalVoteConfig.candidate2 || '미정';
+            } else {
+                // 데이터가 없을 경우 초기화 (기본값 설정)
+                finalVoteConfig = { candidate1: '서울어린이대공원', candidate2: '' };
+                const c1Name = document.getElementById('firstHalfCandidateName');
+                const c2Name = document.getElementById('secondHalfCandidateName');
+                if(c1Name) c1Name.textContent = '서울어린이대공원';
+                if(c2Name) c2Name.textContent = '미정';
             }
         });
 
@@ -1674,6 +1682,20 @@
             });
         }
 
+        // [UPDATED] 최종 후보 설정 초기화 함수 추가
+        async function resetFinalVoteConfig() {
+            const result = await showConfirm('최종 대상 후보 설정을 초기화하시겠습니까?\n(주의: 진행 중인 투표가 있다면 영향을 줄 수 있습니다)');
+            if (result) {
+                finalVoteConfig = { candidate1: '서울어린이대공원', candidate2: '' };
+                database.ref('finalVoteConfig').set(null); // 데이터베이스에서 삭제하여 초기화
+                
+                // UI 초기화
+                document.getElementById('adminCandidate2Select').value = '';
+                
+                showAlert('후보 설정이 초기화되었습니다.');
+            }
+        }
+
         function updateFinalVoteExecutiveStatus() {
             const container = document.getElementById('finalVoteExecutiveStatus');
             container.innerHTML = '';
@@ -2139,19 +2161,16 @@
                 const container = document.getElementById('resultsArea');
                 
                 switch(currentStep) {
-                    case 0: // 5위~8위 표시
+                    case 0: // 5위~8위 표시 -> 장려상으로 변경
                         container.innerHTML = `
                             <div style="text-align: center; cursor: pointer;" onclick="nextStep()">
-                                <h3 style="margin-bottom: 30px; font-size: 2em;">🏆 최종 순위 발표 🏆</h3>
+                                <h3 style="margin-bottom: 30px; font-size: 2em;">🏆 장려상 발표 🏆</h3>
                                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 800px; margin: 0 auto;">
-                                    ${sortedResults.slice(4).map((result, index) => `
+                                    ${sortedResults.slice(4).map((result) => `
                                         <div class="result-card" style="background: #f8f9fa;">
-                                            <h2 style="text-align: center; margin-bottom: 15px; color: #666;">
-                                                ${index + 5}위: ${result.department}
+                                            <h2 style="text-align: center; margin: 20px 0; color: #555; font-size: 1.5em;">
+                                                🏅 장려상: ${result.department}
                                             </h2>
-                                            <div class="final-score" style="color: #666;">
-                                                ${result.finalScore.toFixed(1)}점
-                                            </div>
                                         </div>
                                     `).join('')}
                                 </div>
