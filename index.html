@@ -1855,8 +1855,8 @@
             const candidate2 = finalVoteConfig.candidate2;
 
             // [UPDATED] 투표 제한 로직 적용
-            // 1. 임원 제한: 담당 부서에 후보가 포함된 경우
-            if (currentEvaluator.type === 'executive') {
+            // 1. 임원 제한: 해제 (요청에 따라 임원은 본부 소속 부서여도 최종 투표 가능)
+            /* if (currentEvaluator.type === 'executive') {
                 // 임원 정보 찾기
                 const execInfo = executives.find(e => e.name === currentEvaluator.name);
                 if (execInfo) {
@@ -1866,8 +1866,10 @@
                     }
                 }
             } 
-            // 2. 직원 제한: 소속 부서가 후보인 경우
-            else if (currentEvaluator.type === 'employee') {
+            */
+
+            // 2. 직원 제한: 소속 부서가 후보인 경우 (유지)
+            if (currentEvaluator.type === 'employee') {
                 if (currentEvaluator.dept === candidate1 || currentEvaluator.dept === candidate2) {
                     showAlert(`귀하의 소속 부서(${currentEvaluator.dept})가 최종 후보에 올랐으므로<br>공정한 심사를 위해 투표에 참여하실 수 없습니다.`);
                     return;
